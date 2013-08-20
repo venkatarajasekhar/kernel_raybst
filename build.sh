@@ -1,6 +1,6 @@
 #!/bin/bash
 ###################################
-#Functions			  #
+#Functions                        #
 ###################################
 DIE() { LOG "FAILED : $*"; exit 1; }
 LOG() { printf "\n$@\n\n"; }
@@ -18,6 +18,7 @@ mkdir modules
 MKRAMDISK() {
 	mkdir work
 	cd work
+	rm * -rf
 	cp ../initramfs/* .
 	find . | cpio -o > ../initramfs.cpio | gzip ../initramfs.cpio
 	rm * -rf
@@ -37,16 +38,18 @@ echo "BASE"
 read BASE
 echo "--base is set to $BASE"
 ####################################
-echo "RAMADDR"
+echo "RAMDISKADDRESS"
 read RAMADDR
-echo "--base is set to $RAMADDR"
+echo "--ramdiskaddr is set to $RAMADDR"
 ####################################
-$TOOLS/mkbootimg --cmdline "$CMDLINE" --kernel $OUT/zImage --ramdisk $WORK/ramdisk.cpio.gz --pagesize $PAGE --base $BASE --ramdiskaddr $RAMADDR -o $OUT/boot.img
+$TOOLS/mkbootimg --cmdline "$CMDLINE" --kernel $OUT/zImage --ramdisk $WORK/initramfs.cpio.gz --pagesize $PAGE --base $BASE --ramdiskaddr $RAMADDR -o $OUT/boot.img
 cp $OUT/boot.img $ZIP/
 }
 MODULES() {
 echo "Copying kernel modules"
 find -name '*.ko' -exec cp -av {} $MODULES/ \;
+mkdir $ZIP/system
+mkdir $ZIP/system/lib
 cp $MODULES/ $ZIP/system/lib/modules -r
 }
 MKZIP() {
@@ -57,7 +60,7 @@ mv -f kernel_update-$DATE.zip $HOME
 echo "Kernel located at $HOME/kernel_update-$DATE.zip"
 }
 ####################################
-#Variables			   #
+#Variables                         #
 ####################################
 J=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
 MODULES=modules
@@ -85,7 +88,7 @@ done
 while true; do
     read -p "Make an update.zip?" yn
     case $yn in
-        [Yy]* ) TRY MKBOOTIMG; MODULES; break;;
+        [Yy]* ) TRY MKBOOTIMG; MODULES; MKZIP; break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;
     esac
