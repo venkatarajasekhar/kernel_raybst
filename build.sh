@@ -22,7 +22,8 @@ MKRAMDISK() {
 	cp ../initramfs/* .
 	find . | cpio -o > ../initramfs.cpio | gzip ../initramfs.cpio
 	rm * -rf
-	cp ../initramfs.cpio.gz .	
+	cp ../initramfs.cpio.gz .
+	cp ../arch/arm/boot/zImage .
 }
 MKBOOTIMG() {
 #MKBOOTIMG ARGS
@@ -42,15 +43,17 @@ echo "RAMDISKADDRESS"
 read RAMADDR
 echo "--ramdiskaddr is set to $RAMADDR"
 ####################################
-$TOOLS/mkbootimg --cmdline "$CMDLINE" --kernel $OUT/zImage --ramdisk $WORK/initramfs.cpio.gz --pagesize $PAGE --base $BASE --ramdiskaddr $RAMADDR -o $OUT/boot.img
-cp $OUT/boot.img $ZIP/
+cd work
+../tools/mkbootimg --cmdline "$CMDLINE" --kernel zImage --ramdisk initramfs.cpio.gz --pagesize $PAGE --base $BASE --ramdiskaddr $RAMADDR -o $ boot.img
+cp boot.img ../zip/
 }
 MODULES() {
+cd work
 echo "Copying kernel modules"
-find -name '*.ko' -exec cp -av {} $MODULES/ \;
-mkdir $ZIP/system
-mkdir $ZIP/system/lib
-cp $MODULES/ $ZIP/system/lib/modules -r
+find -name '*.ko' -exec cp -av {} ../modules/ \;
+mkdir ../zip/system
+mkdir ../zip/system/lib
+cp ../modules ../zip/system/lib/modules -r
 }
 MKZIP() {
 echo "Creating update.zip..."
