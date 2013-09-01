@@ -1,0 +1,19 @@
+foobar() {
+if [ -f arch/arm/boot/zImage ]
+echo ""
+else make zImage
+fi
+}
+
+if [ -f zImage ]
+echo ""
+else
+TRY foobar
+cp arch/arm/boot/zImage .
+
+echo "type of ramdisk?"
+read type
+mkbootimg --kernel zImage --ramdisk initramfs.cpio.gz-$type --base 0x400000 --cmdline 'console=null androidboot.hardware=qcom user_debug=31' --pagesize 4096 -o tempbootfile.img
+cp tempbootfile.img "boot$type$(date +%F).img"
+rm tempbootfile.img
+echo "boot.img gen complete!"
