@@ -1,19 +1,18 @@
-foobar() {
-if [ -f arch/arm/boot/zImage ]
-echo ""
-else make zImage
+#/bin/bash
+echo "First a zImage check"
+if [ -e zImage ]
+then echo "zImage found, Great!"
+else echo "No zImage found in this dir"
+if [ -e arch/arm/boot/zImage ]
+then echo "Copying zImage from earlier compile" && cp arch/arm/boot/zImage .
+make raybst_defconfig && make zImage -j16 && clear
 fi
-}
+fi
 
-if [ -f zImage ]
-echo ""
-else
-TRY foobar
-cp arch/arm/boot/zImage .
-
-echo "type of ramdisk?"
+echo "stock or insecure ramdisk?"
 read type
-mkbootimg --kernel zImage --ramdisk initramfs.cpio.gz-$type --base 0x400000 --cmdline 'console=null androidboot.hardware=qcom user_debug=31' --pagesize 4096 -o tempbootfile.img
+chmod a+x rbherotools/mkbootimg
+rbherotools/mkbootimg --kernel zImage --ramdisk initramfs.cpio.gz-$type --base 0x400000 --cmdline 'console=null androidboot.hardware=qcom user_debug=31' --pagesize 4096 -o tempbootfile.img
 cp tempbootfile.img "boot$type$(date +%F).img"
 rm tempbootfile.img
 echo "boot.img gen complete!"
