@@ -1,11 +1,11 @@
 #/bin/bash
-echo "First a zImage check"
+echo "First a zImage check..."
 if [ -e zImage ]
-then echo "zImage found, Great!"
-else echo "No zImage found in this dir"
+then sleep 3 && echo "zImage found, Great!"
+else sleep 3 && echo "No zImage found in this dir"
 if [ -e arch/arm/boot/zImage ]
-then echo "Copying zImage from earlier compile" && cp arch/arm/boot/zImage .
-make raybst_defconfig && make zImage -j16 && clear
+then echo "Copying zImage from earlier compile" && cp arch/arm/boot/zImage . && sleep 3
+else sleep 3 && echo "No zImage found any dir" && echo "Making new build" && make ray_defconfig && make zImage -j16 && cp arch/arm/boot/zImage . && clear
 fi
 fi
 
@@ -13,6 +13,5 @@ echo "stock or insecure ramdisk?"
 read type
 chmod a+x rbherotools/mkbootimg
 rbherotools/mkbootimg --kernel zImage --ramdisk initramfs.cpio.gz-$type --base 0x400000 --cmdline 'console=null androidboot.hardware=qcom user_debug=31' --pagesize 4096 -o tempbootfile.img
-cp tempbootfile.img "boot$type$(date +%F).img"
-rm tempbootfile.img
+mv tempbootfile.img "boot/boot-$type-$(date +%F).img"
 echo "boot.img gen complete!"
