@@ -38,12 +38,6 @@ config IOSCHED_SIO
 	---help---
 	  foobar
 
-config IOSCHED_ROW
-	tristate "ROW I/O scheduler"
-	default y
-	---help---
-	  foobar
-
 config IOSCHED_CFQ
 	tristate "CFQ I/O scheduler"
 	# If BLK_CGROUP is a module, CFQ has to be built as module.
@@ -82,6 +76,9 @@ choice
 	config DEFAULT_NOOP
 		bool "No-op"
 
+	config DEFAULT_SIO
+		bool "SIO" if IOSCHED_SIO=y
+
 endchoice
 
 config DEFAULT_IOSCHED
@@ -89,7 +86,7 @@ config DEFAULT_IOSCHED
 	default "deadline" if DEFAULT_DEADLINE
 	default "cfq" if DEFAULT_CFQ
 	default "noop" if DEFAULT_NOOP
-
+	default "sio" if DEFAULT_SIO
 endmenu
 
 endif
