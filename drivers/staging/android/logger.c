@@ -28,10 +28,6 @@
 #include "logger.h"
 
 #include <asm/ioctls.h>
-#ifdef CONFIG_SEC_DEBUG
-#include <mach/sec_debug.h>
-static char klog_buf[256];
-#endif
 
 /*
  * struct logger_log - represents a specific log, such as 'main' or 'radio'
@@ -436,18 +432,6 @@ static ssize_t do_write_log_from_user(struct logger_log *log,
 			 * message corruption from missing fragments.
 			 */
 			return -EFAULT;
-#ifdef CONFIG_SEC_DEBUG
-	memset(klog_buf, 0, 255);
-	if (strncmp(log->buffer + log->w_off, "!@", 2) == 0) {
-		if (count < 255)
-			memcpy(klog_buf, log->buffer + log->w_off,
-			count);
-		else
-			memcpy(klog_buf, log->buffer + log->w_off,
-			255);
-			klog_buf[255] = 0;
-	}
-#endif
 
 	log->w_off = logger_offset(log, log->w_off + count);
 
@@ -517,11 +501,6 @@ ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 	/* wake up any blocked readers */
 	wake_up_interruptible(&log->wq);
-
-#ifdef CONFIG_SEC_DEBUG
-	if (strncmp(klog_buf, "!@", 2) == 0)
-		printk(KERN_INFO "%s\n", klog_buf);
-#endif
 
 	return ret;
 }
@@ -804,10 +783,6 @@ static int __init logger_init(void)
 	if (unlikely(ret))
 		goto out;
 
-#ifdef CONFIG_SEC_DEBUG
-	sec_getlog_supply_loggerinfo(_buf_log_main, _buf_log_radio,
-		_buf_log_events, _buf_log_system);
-#endif
 out:
 	return ret;
 }
