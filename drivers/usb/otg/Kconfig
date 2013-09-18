@@ -135,6 +135,13 @@ config USB_MSM_OTG
 	  This driver is not supported on boards like trout which
 	  has an external PHY.
 
+config FORCE_FAST_CHARGE
+	bool "Force AC Fast charge at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that are
+	  detected as USB to charge as AC
+
 config USB_MSM_ACA
 	bool "Support for Accessory Charger Adapter (ACA)"
 	depends on (USB_MSM_OTG || USB_MSM_OTG_72K) && ARCH_MSM
