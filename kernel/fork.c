@@ -271,9 +271,9 @@ int __attribute__((weak)) arch_dup_task_struct(struct task_struct *dst,
 
 static struct task_struct *dup_task_struct(struct task_struct *orig)
 {
-	struct task_struct *tsk;
-	struct thread_info *ti;
-	unsigned long *stackend;
+	struct task_struct *tsk = NULL;
+	struct thread_info *ti = NULL;
+	unsigned long *stackend = NULL;
 	int node = tsk_fork_get_node(orig);
 	int err;
 
@@ -332,15 +332,19 @@ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
 	struct rb_node **rb_link, *rb_parent;
 	int retval;
 	unsigned long charge;
-	struct mempolicy *pol;
-
+	struct mempolicy *pol =NULL;
+	struct file *file;
+	struct inode *inode = file->f_path.dentry->d_inode;
+	struct address_space *mapping = file->f_mapping;
+        if((mm)&&(oldmm)){
 	down_write(&oldmm->mmap_sem);
 	flush_cache_dup_mm(oldmm);
+	
 	/*
 	 * Not linked in yet - no deadlock potential:
 	 */
 	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
-
+        
 	mm->locked_vm = 0;
 	mm->mmap = NULL;
 	mm->mmap_cache = NULL;
@@ -361,8 +365,7 @@ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
 
 	prev = NULL;
 	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
-		struct file *file;
-
+		
 		if (mpnt->vm_flags & VM_DONTCOPY) {
 			long pages = vma_pages(mpnt);
 			mm->total_vm -= pages;
@@ -394,9 +397,6 @@ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
 		tmp->vm_next = tmp->vm_prev = NULL;
 		file = tmp->vm_file;
 		if (file) {
-			struct inode *inode = file->f_path.dentry->d_inode;
-			struct address_space *mapping = file->f_mapping;
-
 			get_file(file);
 			if (tmp->vm_flags & VM_DENYWRITE)
 				atomic_dec(&inode->i_writecount);
@@ -456,7 +456,7 @@ fail_nomem:
 	vm_unacct_memory(charge);
 	goto out;
 }
-
+}
 static inline int mm_alloc_pgd(struct mm_struct *mm)
 {
 	mm->pgd = pgd_alloc(mm);
