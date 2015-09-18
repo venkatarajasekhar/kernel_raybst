@@ -158,9 +158,9 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
 	 * We can't do this for DEBUG_MUTEXES because that relies on wait_lock
 	 * to serialize everything.
 	 */
-
+         struct task_struct *owner;
 	for (;;) {
-		struct task_struct *owner;
+		
 
 		/*
 		 * If there's an owner, wait for it to either
