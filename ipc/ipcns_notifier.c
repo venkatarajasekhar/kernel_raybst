@@ -25,8 +25,8 @@ static BLOCKING_NOTIFIER_HEAD(ipcns_chain);
 static int ipcns_callback(struct notifier_block *self,
 				unsigned long action, void *arg)
 {
-	struct ipc_namespace *ns;
-
+	struct ipc_namespace *ns = NULL;
+        
 	switch (action) {
 	case IPCNS_MEMCHANGED:   /* amount of lowmem has changed */
 	case IPCNS_CREATED:
@@ -44,8 +44,13 @@ static int ipcns_callback(struct notifier_block *self,
 		 * blocking_notifier_call_chain.
 		 * So the ipc ns cannot be freed while we are here.
 		 */
+		if(ns) {
 		recompute_msgmni(ns);
 		break;
+		}else{
+			ns = NULL;
+			free (ns);
+		}
 	default:
 		break;
 	}
@@ -55,8 +60,9 @@ static int ipcns_callback(struct notifier_block *self,
 
 int register_ipcns_notifier(struct ipc_namespace *ns)
 {
-	int rc;
-
+	int rc = 0;
+        struct ipc_namespace *ipcns = ns;
+        if(ipcns){
 	memset(&ns->ipcns_nb, 0, sizeof(ns->ipcns_nb));
 	ns->ipcns_nb.notifier_call = ipcns_callback;
 	ns->ipcns_nb.priority = IPCNS_CALLBACK_PRI;
@@ -64,6 +70,11 @@ int register_ipcns_notifier(struct ipc_namespace *ns)
 	if (!rc)
 		ns->auto_msgmni = 1;
 	return rc;
+        }else{
+             ns = NULL;	
+             free(ns);
+             return rc;
+        }
 }
 
 int cond_register_ipcns_notifier(struct ipc_namespace *ns)
